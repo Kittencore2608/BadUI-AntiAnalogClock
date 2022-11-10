@@ -3,10 +3,61 @@
 	<head>
 		<title>Anti-analog clock</title>
 		<script>
-			const canvas = document.getElementById('clock');
+			const CENTRE_X = 250;
+			const CENTRE_Y = 250;
+
+			function run() {
+				const canvas = document.getElementById('clock');
+				const ctx = canvas.getContext('2d',{alpha: false});
+
+				function drawFace() {
+					ctx.fillStyle = '#FFFFFF';
+					ctx.strokeStyle = '#FFFFFF';
+					ctx.fillRect(0,0,500,500);
+					ctx.fillStyle = '#000000';
+					ctx.strokeStyle = '#000000';
+					ctx.lineWidth = 5.0;
+					ctx.beginPath();
+					ctx.arc(CENTRE_X,CENTRE_Y,200,0,2 * Math.PI);
+					ctx.stroke();
+				}
+				
+				var sec = 0;
+				var lastTimestamp = -1;
+				function tick(timestamp) {
+					if (lastTimestamp == -1 || (timestamp - lastTimestamp) >= 1000/1) {
+						lastTimestamp = timestamp;
+						// now draw
+						drawFace();
+						// hand updates
+						sec++;
+						if (sec == 60) sec = 0;
+						ctx.beginPath();
+						ctx.moveTo(CENTRE_X,CENTRE_Y);
+						var handend = radial(minSecToAng(sec),190);
+						ctx.lineTo(handend.x,handend.y);
+						ctx.stroke();
+					}
+					window.requestAnimationFrame(tick);
+				}
+
+				window.requestAnimationFrame(tick);
+			}
+
+			function radial(ang,dist) {
+				const resultx = CENTRE_X + Math.cos(ang) * dist;
+				const resulty = CENTRE_Y + Math.sin(ang) * dist;
+				return {x: resultx, y: resulty};
+			}
+
+			function minSecToAng(value) {
+				if (value < 0) value += 60;
+				if (value >= 60) value -= 60;
+				return (2 * Math.PI) * (value / 60);
+			}
 		</script>
 	</head>
-	<body>
+	<body onload="run()">
 		<canvas id="clock" width="500" height="500"></canvas>
 	</body>
 </html>
