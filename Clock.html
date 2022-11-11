@@ -63,27 +63,31 @@
 						drawNumbers();
 						// hand updates
 						var now = currentTime();
+						// calculate smooth motion interpolants
+						var smoothSec = smoothMotionInterp(now.fracSec);
+						var smoothMin = smoothSec / 60;
+						var smoothHour = smoothMin / 60;
 						// sec
 						ctx.lineWidth = 3.0;
 						ctx.beginPath();
-						var secstart = radial(arrayMinSecToAng(minSecAngles,now.sec),-40);
-						var secend = radial(arrayMinSecToAng(minSecAngles,now.sec),170);
+						var secstart = radial(arrayMinSecToAng(minSecAngles,now.sec + smoothSec),-40);
+						var secend = radial(arrayMinSecToAng(minSecAngles,now.sec + smoothSec),170);
 						ctx.moveTo(secstart.x,secstart.y);
 						ctx.lineTo(secend.x,secend.y);
 						ctx.stroke();
 						// min
 						ctx.lineWidth = 5.0;
 						ctx.beginPath();
-						var minstart = radial(arrayMinSecToAng(minSecAngles,now.min),-40);
-						var minend = radial(arrayMinSecToAng(minSecAngles,now.min),170);
+						var minstart = radial(arrayMinSecToAng(minSecAngles,now.min + smoothMin),-40);
+						var minend = radial(arrayMinSecToAng(minSecAngles,now.min + smoothMin),170);
 						ctx.moveTo(minstart.x,minstart.y);
 						ctx.lineTo(minend.x,minend.y);
 						ctx.stroke();
 						// hour
 						ctx.lineWidth = 5.0;
 						ctx.beginPath();
-						var hourstart = radial(arrayHourToAng(hourAngles,now.hour),-40);
-						var hourend = radial(arrayHourToAng(hourAngles,now.hour),100);
+						var hourstart = radial(arrayHourToAng(hourAngles,now.hour + smoothHour),-40);
+						var hourend = radial(arrayHourToAng(hourAngles,now.hour + smoothHour),100);
 						ctx.moveTo(hourstart.x,hourstart.y);
 						ctx.lineTo(hourend.x,hourend.y);
 						ctx.stroke();
@@ -159,9 +163,9 @@
 				return (1 - lerp) * a + (lerp) * b;
 			}
 
-			// interp for the second hand to jerk into place
-			function secondInterp(a,b,interp) {
-				return lerp(a,b,interp >= 0.5? 1 : Math.sin(interp * Math.PI));
+			// turn the linear interpolant into an intermittent but smooth movement
+			function smoothMotionInterp(interp) {
+				return interp >= 0.5? 1 : Math.sin(interp * Math.PI);
 			}
 
 			// fractional part of a float
