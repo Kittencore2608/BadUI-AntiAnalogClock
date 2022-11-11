@@ -6,7 +6,7 @@
 			const CENTRE_X = 250;
 			const CENTRE_Y = 250;
 			const HAND_TRAVEL_REVERSE = true; // anticlockwise hand motion if true, clockwise otherwise
-			const NORMAL_NUM_POSITIONS = false; // if true, do not randomise face number positions
+			const NORMAL_NUM_POSITIONS = true; // if true, do not randomise face number positions
 
 			function run() {
 				const canvas = document.getElementById('clock');
@@ -196,24 +196,44 @@
 
 			// Minute/second to angle, using array (likely cursed)
 			function arrayMinSecToAng(angtable,value) {
-				// Determine upper-lower interpolation points
-				const upper = angtable[Math.ceil(value) % 60];
-				const lower = angtable[Math.floor(value) % 60];
-				// If upper is actually below lower, add pi * 2 to make the hand go clockwise anyway
-				const adjUpper = upper < lower? upper + 2 * Math.PI : upper;
-				const interpolant = value - Math.floor(value);
-				return lerp(lower,adjUpper,interpolant);
+				if (HAND_TRAVEL_REVERSE) {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 60];
+					const lower = angtable[Math.floor(value) % 60];
+					// If upper is above lower, subtract pi * 2 to make the hand go anticlockwise the long way around
+					const adjUpper = upper > lower? upper - 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				} else {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 60];
+					const lower = angtable[Math.floor(value) % 60];
+					// If upper is actually below lower, add pi * 2 to make the hand go clockwise anyway
+					const adjUpper = upper < lower? upper + 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				}
 			}
 
 			// Hour to angle, using array (likely cursed)
 			function arrayHourToAng(angtable,value) {
-				// Determine upper-lower interpolation points
-				const upper = angtable[Math.ceil(value) % 12];
-				const lower = angtable[Math.floor(value) % 12];
-				// If upper is actually below lower, add pi * 2 to make the hand go clockwise anyway
-				const adjUpper = upper < lower? upper + 2 * Math.PI : upper;
-				const interpolant = value - Math.floor(value);
-				return lerp(lower,adjUpper,interpolant);
+				if (HAND_TRAVEL_REVERSE) {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 12];
+					const lower = angtable[Math.floor(value) % 12];
+					// If upper is above lower, subtract pi * 2 to make the hand go anticlockwise the long way around
+					const adjUpper = upper > lower? upper - 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				} else {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 12];
+					const lower = angtable[Math.floor(value) % 12];
+					// If upper is actually below lower, add pi * 2 to make the hand go clockwise anyway
+					const adjUpper = upper < lower? upper + 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				}
 			}
 		</script>
 	</head>
