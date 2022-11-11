@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Anti-analog clock</title>
+		<script>
+			const CENTRE_X = 250;
+			const CENTRE_Y = 250;
+			const HAND_TRAVEL_REVERSE = true; // anticlockwise hand motion if true, clockwise otherwise
+			const NORMAL_NUM_POSITIONS = true; // if true, do not randomise face number positions
+
+			function run() {
+				const canvas = document.getElementById('clock');
+				const ctx = canvas.getContext('2d',{alpha: false});
+				const minSecAngles = genMinuteSecondAngles();
+				const hourAngles = genHourAngles();
+
+				function drawFace() {
+					ctx.fillStyle = '#FFFFFF';
+					ctx.strokeStyle = '#FFFFFF';
+					ctx.fillRect(0,0,500,500);
+
+					ctx.fillStyle = '#7F7F7F';
+					ctx.strokeStyle = '#7F7F7F';
+					ctx.lineWidth = 5.0;
+					ctx.beginPath();
+					ctx.arc(CENTRE_X,CENTRE_Y,192,0,2 * Math.PI);
+					ctx.stroke();
+
+					ctx.fillStyle = '#4F4F4F';
+					ctx.strokeStyle = '#4F4F4F';
+					ctx.lineWidth = 5.0;
+					ctx.beginPath();
+					ctx.arc(CENTRE_X,CENTRE_Y,196,0,2 * Math.PI);
+					ctx.stroke();
+
+					ctx.fillStyle = '#000000';
+					ctx.strokeStyle = '#000000';
+					ctx.lineWidth = 5.0;
+					ctx.beginPath();
+					ctx.arc(CENTRE_X,CENTRE_Y,200,0,2 * Math.PI);
+					ctx.stroke();
+				}
+
+				function drawNumbers() {
+					ctx.textAlign = 'center';
+					ctx.font = 'bold 24px sans-serif';
+					for (var i = 0; i < 12; i++) {
+						const position = radial(arrayHourToAng(hourAngles,i),150);
+						var text = i == 0? 12 : i;
+						ctx.fillText(text,position.x,position.y+4);
+					}
+					ctx.font = '12px sans-serif';
+					for (var i = 0; i < 60; i++) {
+						const position = radial(arrayMinSecToAng(minSecAngles,i),180);
+						ctx.fillText(i,position.x,position.y+4);
+					}
+				}
+				
+				var lastTimestamp = -1;
+				function tick(timestamp) {
+					if (lastTimestamp == -1 || (timestamp - lastTimestamp) >= 1000/60) {
+						lastTimestamp = timestamp;
+						// now draw
+						drawFace();
+						drawNumbers();
+						// hand updates
+						var now = currentTime();
+						// calculate smooth motion interpolants
+						var smoothSec = smoothMotionInterp(now.fracSec);
+						var smoothMin = smoothSec / 60;
+						var smoothHour = smoothMin / 60;
+						// sec
+						ctx.lineWidth = 3.0;
+						ctx.beginPath();
+						var secstart = radial(arrayMinSecToAng(minSecAngles,now.sec + smoothSec),-40);
+						var secend = radial(arrayMinSecToAng(minSecAngles,now.sec + smoothSec),170);
+						ctx.moveTo(secstart.x,secstart.y);
+						ctx.lineTo(secend.x,secend.y);
+						ctx.stroke();
+						// min
+						ctx.lineWidth = 5.0;
+						ctx.beginPath();
+						var minstart = radial(arrayMinSecToAng(minSecAngles,now.min + smoothMin),-40);
+						var minend = radial(arrayMinSecToAng(minSecAngles,now.min + smoothMin),170);
+						ctx.moveTo(minstart.x,minstart.y);
+						ctx.lineTo(minend.x,minend.y);
+						ctx.stroke();
+						// hour
+						ctx.lineWidth = 5.0;
+						ctx.beginPath();
+						var hourstart = radial(arrayHourToAng(hourAngles,now.hour + smoothHour),-40);
+						var hourend = radial(arrayHourToAng(hourAngles,now.hour + smoothHour),100);
+						ctx.moveTo(hourstart.x,hourstart.y);
+						ctx.lineTo(hourend.x,hourend.y);
+						ctx.stroke();
+						
+						//ctx.fillText((now.hour) + ':' + (now.min) + ':' + (now.sec),CENTRE_X,CENTRE_Y);
+					}
+					window.requestAnimationFrame(tick);
+				}
+
+				window.requestAnimationFrame(tick);
+			}
+
+			function genMinuteSecondAngles() {
+				var angles = [];
+				for (var i = 0; i < 60; i++) {
+					angles[i] = minSecToAng(i);
+				}
+				// now shuffle them
+				if (!NORMAL_NUM_POSITIONS) {
+					for (var i = 0; i < 60; i++) {
+						var rand = (Math.random() * 60) | 0;
+						var v1 = angles[i];
+						var v2 = angles[rand];
+						angles[rand] = v1;
+						angles[i] = v2;
+					}
+				}
+				return angles;
+			}
+
+			function genHourAngles() {
+				var angles = [];
+				for (var i = 0; i < 12; i++) {
+					angles[i] = hourToAng(i);
+				}
+				// now shuffle them
+				if (!NORMAL_NUM_POSITIONS) {
+					for (var i = 0; i < 12; i++) {
+						var rand = (Math.random() * 12) | 0;
+						var v1 = angles[i];
+						var v2 = angles[rand];
+						angles[rand] = v1;
+						angles[i] = v2;
+					}
+				}
+				return angles;
+			}
+
+			function currentTime() {
+				// 86400 seconds in a day
+				// 86400 000 millis in a day
+				const now = new Date();
+				const time = {};
+				// calculate absolutes
+				time.fracSec = now.getMilliseconds() / 1000;
+				time.sec = now.getSeconds();
+				time.min = now.getMinutes();
+				time.hour = now.getHours() % 12;
+				// now carry seconds upward to higher units as decimals
+				// because any good analog clock should interpolate these
+				time.min += time.sec / 60;
+				if (time.min >= 60) time.min -= 60;
+				time.hour += time.min / 60;
+				if (time.hour >= 12) time.hour -= 12;
+				return time;
+			}
+
+			// plain ol' lerp between a and b
+			function lerp(a,b,lerp) {
+				return (1 - lerp) * a + (lerp) * b;
+			}
+
+			// turn the linear interpolant into an intermittent but smooth movement
+			function smoothMotionInterp(interp) {
+				return interp >= 0.5? 1 : Math.sin(interp * Math.PI);
+			}
+
+			// fractional part of a float
+			function frac(v) {
+				var integral = integral < 0? Math.ceil(v) : Math.floor(v);
+				return v - integral;
+			}
+
+			// Get the XY for a given radian angle plus distance
+			function radial(ang,dist) {
+				const resultx = CENTRE_X + Math.cos(ang) * dist;
+				const resulty = CENTRE_Y + Math.sin(ang) * dist;
+				return {x: resultx, y: resulty};
+			}
+
+			// Minute/second to angle, non-cursed
+			function minSecToAng(value) {
+				if (value < 0) value += 60;
+				if (value >= 60) value -= 60;
+				return ((2 * Math.PI) * (value / 60)) - Math.PI / 2;
+			}
+
+			// Hour to angle, non-cursed
+			function hourToAng(value) {
+				if (value < 0) value += 12;
+				if (value >= 12) value -= 12;
+				return ((2 * Math.PI) * (value / 12)) - Math.PI / 2;
+			}
+
+			// Minute/second to angle, using array (likely cursed)
+			function arrayMinSecToAng(angtable,value) {
+				if (HAND_TRAVEL_REVERSE) {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 60];
+					const lower = angtable[Math.floor(value) % 60];
+					// If upper is above lower, subtract pi * 2 to make the hand go anticlockwise the long way around
+					const adjUpper = upper > lower? upper - 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				} else {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 60];
+					const lower = angtable[Math.floor(value) % 60];
+					// If upper is actually below lower, add pi * 2 to make the hand go clockwise anyway
+					const adjUpper = upper < lower? upper + 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				}
+			}
+
+			// Hour to angle, using array (likely cursed)
+			function arrayHourToAng(angtable,value) {
+				if (HAND_TRAVEL_REVERSE) {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 12];
+					const lower = angtable[Math.floor(value) % 12];
+					// If upper is above lower, subtract pi * 2 to make the hand go anticlockwise the long way around
+					const adjUpper = upper > lower? upper - 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				} else {
+					// Determine upper-lower interpolation points
+					const upper = angtable[Math.ceil(value) % 12];
+					const lower = angtable[Math.floor(value) % 12];
+					// If upper is actually below lower, add pi * 2 to make the hand go clockwise anyway
+					const adjUpper = upper < lower? upper + 2 * Math.PI : upper;
+					const interpolant = value - Math.floor(value);
+					return lerp(lower,adjUpper,interpolant);
+				}
+			}
+		</script>
+	</head>
+	<body onload="run()" style="text-align:center">
+		<canvas id="clock" width="500" height="500"></canvas>
+	</body>
+</html>
