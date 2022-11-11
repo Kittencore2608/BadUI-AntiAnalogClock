@@ -22,7 +22,6 @@
 					ctx.stroke();
 				}
 				
-				var sec = 0;
 				var lastTimestamp = -1;
 				function tick(timestamp) {
 					if (lastTimestamp == -1 || (timestamp - lastTimestamp) >= 1000/1) {
@@ -30,18 +29,55 @@
 						// now draw
 						drawFace();
 						// hand updates
-						sec++;
-						if (sec == 60) sec = 0;
+						var now = currentTime();
+						// sec
+						ctx.lineWidth = 3.0;
 						ctx.beginPath();
-						ctx.moveTo(CENTRE_X,CENTRE_Y);
-						var handend = radial(minSecToAng(sec),190);
-						ctx.lineTo(handend.x,handend.y);
+						var secstart = radial(minSecToAng(now.sec),-10);
+						var secend = radial(minSecToAng(now.sec),180);
+						ctx.moveTo(secstart.x,secstart.y);
+						ctx.lineTo(secend.x,secend.y);
 						ctx.stroke();
+						// min
+						ctx.lineWidth = 5.0;
+						ctx.beginPath();
+						var minstart = radial(minSecToAng(now.min),-10);
+						var minend = radial(minSecToAng(now.min),180);
+						ctx.moveTo(minstart.x,minstart.y);
+						ctx.lineTo(minend.x,minend.y);
+						ctx.stroke();
+						// hour
+						ctx.lineWidth = 5.0;
+						ctx.beginPath();
+						var hourstart = radial(hourToAng(now.hour),-10);
+						var hourend = radial(hourToAng(now.hour),100);
+						ctx.moveTo(hourstart.x,hourstart.y);
+						ctx.lineTo(hourend.x,hourend.y);
+						ctx.stroke();
+						
+						ctx.fillText((now.hour) + ':' + (now.min) + ':' + (now.sec),CENTRE_X,CENTRE_Y);
 					}
 					window.requestAnimationFrame(tick);
 				}
 
 				window.requestAnimationFrame(tick);
+			}
+
+			function currentTime() {
+				// 86400 seconds in a day
+				// 86400 000 millis in a day
+				const now = new Date();
+				const time = {};
+				// calculate absolutes
+				time.sec = now.getSeconds();
+				time.min = now.getMinutes();
+				time.hour = now.getHours() % 12;
+				// now carry seconds upward to higher units as decimals
+				time.min += time.sec / 60;
+				if (time.min >= 60) time.min -= 60;
+				time.hour += time.min / 60;
+				if (time.hour >= 12) time.hour -= 12;
+				return time;
 			}
 
 			function radial(ang,dist) {
@@ -53,7 +89,13 @@
 			function minSecToAng(value) {
 				if (value < 0) value += 60;
 				if (value >= 60) value -= 60;
-				return (2 * Math.PI) * (value / 60);
+				return ((2 * Math.PI) * (value / 60)) - Math.PI / 2;
+			}
+
+			function hourToAng(value) {
+				if (value < 0) value += 12;
+				if (value >= 12) value -= 12;
+				return ((2 * Math.PI) * (value / 12)) - Math.PI / 2;
 			}
 		</script>
 	</head>
