@@ -67,7 +67,7 @@
 						ctx.lineWidth = 3.0;
 						ctx.beginPath();
 						var secstart = radial(arraySecToAngSpecial(minSecAngles,now.sec+now.millis),-40);
-						var secend = radial(arraySecToAngSpecial(minSecAngles,now.sec+now.millis),180);
+						var secend = radial(arraySecToAngSpecial(minSecAngles,now.sec+now.millis),170);
 						ctx.moveTo(secstart.x,secstart.y);
 						ctx.lineTo(secend.x,secend.y);
 						ctx.stroke();
@@ -75,7 +75,7 @@
 						ctx.lineWidth = 5.0;
 						ctx.beginPath();
 						var minstart = radial(arrayMinSecToAng(minSecAngles,now.min),-40);
-						var minend = radial(arrayMinSecToAng(minSecAngles,now.min),180);
+						var minend = radial(arrayMinSecToAng(minSecAngles,now.min),170);
 						ctx.moveTo(minstart.x,minstart.y);
 						ctx.lineTo(minend.x,minend.y);
 						ctx.stroke();
