@@ -194,17 +194,6 @@
 				return ((2 * Math.PI) * (value / 12)) - Math.PI / 2;
 			}
 
-			// Second to angle, using array (likely cursed) and special interp
-			function arraySecToAngSpecial(angtable,value) {
-				// Determine upper-lower interpolation points
-				const upper = angtable[Math.ceil(value) % 60];
-				const lower = angtable[Math.floor(value) % 60];
-				// If upper is actually below lower, add pi * 2 to make the hand go clockwise anyway
-				const adjUpper = upper < lower? upper + 2 * Math.PI : upper;
-				const interpolant = value - Math.floor(value);
-				return secondInterp(lower,adjUpper,interpolant);
-			}
-
 			// Minute/second to angle, using array (likely cursed)
 			function arrayMinSecToAng(angtable,value) {
 				// Determine upper-lower interpolation points
