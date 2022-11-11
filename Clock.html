@@ -66,8 +66,8 @@
 						// sec
 						ctx.lineWidth = 3.0;
 						ctx.beginPath();
-						var secstart = radial(arraySecToAngSpecial(minSecAngles,now.sec+now.millis),-40);
-						var secend = radial(arraySecToAngSpecial(minSecAngles,now.sec+now.millis),170);
+						var secstart = radial(arrayMinSecToAng(minSecAngles,now.sec),-40);
+						var secend = radial(arrayMinSecToAng(minSecAngles,now.sec),170);
 						ctx.moveTo(secstart.x,secstart.y);
 						ctx.lineTo(secend.x,secend.y);
 						ctx.stroke();
@@ -102,13 +102,13 @@
 					angles[i] = minSecToAng(i);
 				}
 				// now shuffle them
-				for (var i = 0; i < 60; i++) {
-					var rand = (Math.random() * 60) | 0;
-					var v1 = angles[i];
-					var v2 = angles[rand];
-					angles[rand] = v1;
-					angles[i] = v2;
-				}
+				// for (var i = 0; i < 60; i++) {
+				// 	var rand = (Math.random() * 60) | 0;
+				// 	var v1 = angles[i];
+				// 	var v2 = angles[rand];
+				// 	angles[rand] = v1;
+				// 	angles[i] = v2;
+				// }
 				return angles;
 			}
 
@@ -118,13 +118,13 @@
 					angles[i] = hourToAng(i);
 				}
 				// now shuffle them
-				for (var i = 0; i < 12; i++) {
-					var rand = (Math.random() * 12) | 0;
-					var v1 = angles[i];
-					var v2 = angles[rand];
-					angles[rand] = v1;
-					angles[i] = v2;
-				}
+				// for (var i = 0; i < 12; i++) {
+				// 	var rand = (Math.random() * 12) | 0;
+				// 	var v1 = angles[i];
+				// 	var v2 = angles[rand];
+				// 	angles[rand] = v1;
+				// 	angles[i] = v2;
+				// }
 				return angles;
 			}
 
@@ -134,7 +134,7 @@
 				const now = new Date();
 				const time = {};
 				// calculate absolutes
-				time.millis = now.getMilliseconds() / 1000;
+				time.fracSec = now.getMilliseconds() / 1000;
 				time.sec = now.getSeconds();
 				time.min = now.getMinutes();
 				time.hour = now.getHours() % 12;
