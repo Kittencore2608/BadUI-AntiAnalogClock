@@ -5,6 +5,8 @@
 		<script>
 			const CENTRE_X = 250;
 			const CENTRE_Y = 250;
+			const HAND_TRAVEL_REVERSE = true; // anticlockwise hand motion if true, clockwise otherwise
+			const NORMAL_NUM_POSITIONS = false; // if true, do not randomise face number positions
 
 			function run() {
 				const canvas = document.getElementById('clock');
@@ -106,13 +108,15 @@
 					angles[i] = minSecToAng(i);
 				}
 				// now shuffle them
-				// for (var i = 0; i < 60; i++) {
-				// 	var rand = (Math.random() * 60) | 0;
-				// 	var v1 = angles[i];
-				// 	var v2 = angles[rand];
-				// 	angles[rand] = v1;
-				// 	angles[i] = v2;
-				// }
+				if (!NORMAL_NUM_POSITIONS) {
+					for (var i = 0; i < 60; i++) {
+						var rand = (Math.random() * 60) | 0;
+						var v1 = angles[i];
+						var v2 = angles[rand];
+						angles[rand] = v1;
+						angles[i] = v2;
+					}
+				}
 				return angles;
 			}
 
@@ -122,13 +126,15 @@
 					angles[i] = hourToAng(i);
 				}
 				// now shuffle them
-				// for (var i = 0; i < 12; i++) {
-				// 	var rand = (Math.random() * 12) | 0;
-				// 	var v1 = angles[i];
-				// 	var v2 = angles[rand];
-				// 	angles[rand] = v1;
-				// 	angles[i] = v2;
-				// }
+				if (!NORMAL_NUM_POSITIONS) {
+					for (var i = 0; i < 12; i++) {
+						var rand = (Math.random() * 12) | 0;
+						var v1 = angles[i];
+						var v2 = angles[rand];
+						angles[rand] = v1;
+						angles[i] = v2;
+					}
+				}
 				return angles;
 			}
 
@@ -153,13 +159,6 @@
 
 			// plain ol' lerp between a and b
 			function lerp(a,b,lerp) {
-				return (1 - lerp) * a + (lerp) * b;
-			}
-
-			// fancy angular modular lerp, always going clockwise
-			function angModLerp(a,b,lerp) {
-				const lower = a;
-				const upper = a < b? (b + 2 * Math.PI) : b;
 				return (1 - lerp) * a + (lerp) * b;
 			}
 
